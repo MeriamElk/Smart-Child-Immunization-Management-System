@@ -71,7 +71,7 @@ Access the interface at 👉 http://127.0.0.1:5000/
 | 🧑‍💻 **Administrator** | Manage all users, vaccines, and system configuration |
 
 
-##🧪 Test Data
+## 🧪 Test Data
 
 Includes:
 Pre-created user accounts (emails + hashed passwords)
@@ -87,7 +87,7 @@ Sample children, vaccines, vaccination schedules, and alert data
 | **Security** | Bcrypt, JWT |
 | **Data Handling** | REST APIs & dynamic templates |
 
-##💡 Future Enhancements
+## 💡 Future Enhancements
 
 Integration with SMS or Email notification systems
 Real-time analytics dashboard for health authorities
