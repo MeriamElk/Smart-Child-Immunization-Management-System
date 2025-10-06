@@ -1,72 +1,94 @@
-VacciTrack – Système de Suivi des Vaccinations Infantiles
-VacciTrack est une application web conçue pour faciliter le suivi des vaccinations des enfants. Elle permet aux parents, médecins et administrateurs de gérer les dossiers vaccinaux, générer des alertes de rappel, et analyser la couverture vaccinale.
+# 🩺 VacciTrack – Smart Child Immunization Management System
 
-Prérequis techniques
-Python 3.9+
+**VacciTrack** is a web-based platform designed to intelligently manage and monitor child vaccination records.  
+It allows parents, healthcare professionals, and administrators to track immunization schedules, receive automated reminders, and analyze vaccination coverage efficiently.
 
-MySQL Server (v8.x recommandé)
+> **Developed by:** *Meriam Elk & Meriem ZAHRI*  
 
-MongoDB (local, ex: localhost:27017)
+---
 
-Pip + venv pour l’environnement virtuel
+## 🚀 Features
 
-Installation & Configuration
+- 🧒 **Parent Dashboard** – View children’s vaccination profiles and receive personalized reminders  
+- 🩹 **Doctor Interface** – Manage vaccination records, update medical data, and generate reports  
+- 🧑‍💼 **Administrator Panel** – Oversee users, permissions, and database integrity  
+- 🔔 **Smart Alerts System** – Automated notifications for upcoming or missed vaccinations  
+- 📊 **Analytics Dashboard** – Visual insights into vaccination coverage and performance trends  
 
-Créer un environnement virtuel et l’activer
+---
 
+## 🧰 Technical Requirements
+
+- **Python** ≥ 3.9  
+- **MySQL Server** (v8.x recommended)  
+- **MongoDB** (local instance, e.g., `localhost:27017`)  
+- **Pip** + **venv** for virtual environment management  
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1️⃣ Create and activate a virtual environment
+```bash
 python -m venv venv
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
+# Activate it:
+# Linux/macOS
+source venv/bin/activate
+# Windows
+venv\Scripts\activate
+```
 
-Installer les dépendances
-
-bash
-Copier le code
+### 2️⃣ Install dependencies
+```bash
 pip install -r requirements.txt
-Configurer MySQL
+```
 
-Lancer le script SQL :
-
-bash
-Copier le code
+### 3️⃣ Configure MySQL
+Import the database schema:
+```bash
 mysql -u root -p < data/create_mysql_schema.sql
-Configurer MongoDB
+```
 
-Démarrer le serveur MongoDB (sur localhost:27017)
-
-Exécuter :
-
-
+### 4️⃣ Configure MongoDB
+Start MongoDB (default: localhost:27017) and initialize data:
+```bash
 python data/initialize_mongodb.py
-▶
-Exécution de l'application
-Lancer le serveur Flask
+```
 
+### 5️⃣ Run the Flask application
+```bash
 python app.py
+```
 
-Accéder à l’interface
+Access the interface at 👉 http://127.0.0.1:5000/
 
-Ouvrir : http://127.0.0.1:5000/ dans un navigateur
+## 👥 User Roles
 
-Rôles utilisateurs
-Parent : Voir les enfants, recevoir des alertes
+| Role | Description |
+|------|--------------|
+| 👨‍👩‍👧 **Parent** | View children’s vaccination history and receive alerts |
+| 👩‍⚕️ **Doctor** | Manage vaccination records and perform data analysis |
+| 🧑‍💻 **Administrator** | Manage all users, vaccines, and system configuration |
 
-Médecin : Gérer les vaccinations et analyses
 
-Admin : Gérer tous les utilisateurs
+##🧪 Test Data
 
-Technologies utilisées
-Flask (backend)
+Includes:
+Pre-created user accounts (emails + hashed passwords)
+Sample children, vaccines, vaccination schedules, and alert data
 
-MySQL + SQLAlchemy (relationnel)
+## 🧱 Technologies Used
 
-MongoDB (NoSQL - alertes & logs)
+| Layer | Technologies |
+|--------|---------------|
+| **Backend** | Flask (Python) |
+| **Database** | MySQL (SQLAlchemy ORM) & MongoDB |
+| **Frontend** | Jinja2, HTML, CSS, JavaScript |
+| **Security** | Bcrypt, JWT |
+| **Data Handling** | REST APIs & dynamic templates |
 
-Jinja2, HTML/CSS, JavaScript (frontend)
+##💡 Future Enhancements
 
-Bcrypt, JWT (sécurité)
-
-Données de test incluses
-Comptes précréés (emails + mots de passe hashés)
-
-Données d’enfants, vaccinations, vaccins, alertes
+Integration with SMS or Email notification systems
+Real-time analytics dashboard for health authorities
+AI-based prediction of vaccination trends and delays
