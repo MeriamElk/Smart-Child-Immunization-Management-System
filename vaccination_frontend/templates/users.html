@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des utilisateurs - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="users-container">
+    <div class="page-header">
+        <h1>Gestion des utilisateurs</h1>
+        <button class="btn btn-primary" onclick="openModal('ajouterUserModal')">
+            <i class="fas fa-plus"></i> Ajouter un utilisateur
+        </button>
+    </div>
+
+    <div class="filters-section">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Rechercher un utilisateur..." class="form-control">
+        </div>
+        <div class="filter-group">
+            <label for="filterRole">Rôle</label>
+            <select id="filterRole" class="form-control">
+                <option value="">Tous les rôles</option>
+                <option value="admin">Administrateur</option>
+                <option value="medecin">Médecin</option>
+                <option value="parent">Parent</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filterStatus">Statut</label>
+            <select id="filterStatus" class="form-control">
+                <option value="">Tous les statuts</option>
+                <option value="active">Actif</option>
+                <option value="inactive">Inactif</option>
+                <option value="blocked">Bloqué</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Dernière connexion</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.prenom }} {{ user.nom }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="role-badge {{ user.role }}">{{ user.role|title }}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge {{ user.statut }}">{{ user.statut|title }}</span>
+                    </td>
+                    <td>{{ user.derniere_connexion|default('Jamais', true) }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="openModal('voirUserModal', {{ user.id }})" title="Voir détails">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon" onclick="openModal('modifierUserModal', {{ user.id }})" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon danger" onclick="confirmerSuppression({{ user.id }})" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">Aucun utilisateur trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Ajouter Utilisateur -->
+<div id="ajouterUserModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Ajouter un utilisateur</h2>
+            <button class="close-btn" onclick="closeModal('ajouterUserModal')">&times;</button>
+        </div>
+        <form id="ajouterUserForm" class="modal-form">
+            <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="tel" id="telephone" name="telephone" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="role">Rôle</label>
+                <select id="role" name="role" class="form-control" required>
+                    <option value="">Sélectionner...</option>
+                    <option value="admin">Administrateur</option>
+                    <option value="medecin">Médecin</option>
+                    <option value="parent">Parent</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirmer le mot de passe</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('ajouterUserModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Créer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Modifier Utilisateur -->
+<div id="modifierUserModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Modifier l'utilisateur</h2>
+            <button class="close-btn" onclick="closeModal('modifierUserModal')">&times;</button>
+        </div>
+        <form id="modifierUserForm" class="modal-form">
+            <div class="form-group">
+                <label for="edit_prenom">Prénom</label>
+                <input type="text" id="edit_prenom" name="prenom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_nom">Nom</label>
+                <input type="text" id="edit_nom" name="nom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_email">Email</label>
+                <input type="email" id="edit_email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_telephone">Téléphone</label>
+                <input type="tel" id="edit_telephone" name="telephone" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="edit_role">Rôle</label>
+                <select id="edit_role" name="role" class="form-control" required>
+                    <option value="admin">Administrateur</option>
+                    <option value="medecin">Médecin</option>
+                    <option value="parent">Parent</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_statut">Statut</label>
+                <select id="edit_statut" name="statut" class="form-control" required>
+                    <option value="active">Actif</option>
+                    <option value="inactive">Inactif</option>
+                    <option value="blocked">Bloqué</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modifierUserModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Voir Utilisateur -->
+<div id="voirUserModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Détails de l'utilisateur</h2>
+            <button class="close-btn" onclick="closeModal('voirUserModal')">&times;</button>
+        </div>
+        <div class="user-details">
+            <div class="detail-group">
+                <label>Nom complet</label>
+                <p id="detail_nom_complet"></p>
+            </div>
+            <div class="detail-group">
+                <label>Email</label>
+                <p id="detail_email"></p>
+            </div>
+            <div class="detail-group">
+                <label>Téléphone</label>
+                <p id="detail_telephone"></p>
+            </div>
+            <div class="detail-group">
+                <label>Rôle</label>
+                <p id="detail_role"></p>
+            </div>
+            <div class="detail-group">
+                <label>Statut</label>
+                <p id="detail_statut"></p>
+            </div>
+            <div class="detail-group">
+                <label>Date de création</label>
+                <p id="detail_date_creation"></p>
+            </div>
+            <div class="detail-group">
+                <label>Dernière connexion</label>
+                <p id="detail_derniere_connexion"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal('voirUserModal')">Fermer</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.users-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.filters-section {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: end;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-500);
+}
+
+.search-box input {
+    padding-left: 2.5rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.table th {
+    background: var(--gray-100);
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem;
+    color: var(--gray-800);
+}
+
+.table td {
+    padding: 1rem;
+    border-top: 1px solid var(--gray-200);
+    color: var(--gray-700);
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.role-badge.admin {
+    background: var(--light-blue);
+    color: var(--primary-blue);
+}
+
+.role-badge.medecin {
+    background: var(--light-green);
+    color: var(--success);
+}
+
+.role-badge.parent {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: var(--light-green);
+    color: var(--success);
+}
+
+.status-badge.inactive {
+    background: var(--gray-200);
+    color: var(--gray-600);
+}
+
+.status-badge.blocked {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--gray-600);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: var(--gray-100);
+    color: var(--primary-blue);
+}
+
+.btn-icon.danger:hover {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    color: var(--gray-800);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--gray-500);
+    cursor: pointer;
+}
+
+.modal-form {
+    padding: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.user-details {
+    padding: 1.5rem;
+}
+
+.detail-group {
+    margin-bottom: 1rem;
+}
+
+.detail-group label {
+    display: block;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.detail-group p {
+    color: var(--gray-800);
+    font-size: 1rem;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .users-container {
+        padding: 1rem;
+    }
+    
+    .filters-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+</style>
+
+<script>
+// Fonction de recherche et filtrage
+document.getElementById('searchInput').addEventListener('input', filterUsers);
+document.getElementById('filterRole').addEventListener('change', filterUsers);
+document.getElementById('filterStatus').addEventListener('change', filterUsers);
+
+function filterUsers() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const roleFilter = document.getElementById('filterRole').value.toLowerCase();
+    const statusFilter = document.getElementById('filterStatus').value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        const role = row.querySelector('.role-badge').textContent.toLowerCase();
+        const status = row.querySelector('.status-badge').textContent.toLowerCase();
+        
+        const matchesSearch = name.includes(searchTerm);
+        const matchesRole = !roleFilter || role === roleFilter;
+        const matchesStatus = !statusFilter || status === statusFilter;
+        
+        row.style.display = matchesSearch && matchesRole && matchesStatus ? '' : 'none';
+    });
+}
+
+// Fonction pour confirmer la suppression
+function confirmerSuppression(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+        fetch(`/api/users/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erreur lors de la suppression');
+            }
+        });
+    }
+}
+
+// Gestion du formulaire d'ajout d'utilisateur
+document.getElementById('ajouterUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    if (formData.get('password') !== formData.get('confirm_password')) {
+        alert('Les mots de passe ne correspondent pas');
+        return;
+    }
+    
+    fetch('/api/users', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(Object.fromEntries(formData))
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        alert('Erreur lors de la création de l\'utilisateur');
+    });
+});
+
+// Gestion du formulaire de modification d'utilisateur
+document.getElementById('modifierUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const userId = this.dataset.userId;
+    
+    fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(Object.fromEntries(formData))
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        alert('Erreur lors de la modification de l\'utilisateur');
+    });
+});
+
+// Fonction pour charger les détails d'un utilisateur
+function chargerDetailsUser(id) {
+    fetch(`/api/users/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('detail_nom_complet').textContent = `${data.prenom} ${data.nom}`;
+            document.getElementById('detail_email').textContent = data.email;
+            document.getElementById('detail_telephone').textContent = data.telephone || 'Non renseigné';
+            document.getElementById('detail_role').textContent = data.role;
+            document.getElementById('detail_statut').textContent = data.statut;
+            document.getElementById('detail_date_creation').textContent = data.date_creation;
+            document.getElementById('detail_derniere_connexion').textContent = data.derniere_connexion || 'Jamais';
+        });
+}
+
+// Fonction pour charger les données de modification
+function chargerModificationUser(id) {
+    fetch(`/api/users/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_prenom').value = data.prenom;
+            document.getElementById('edit_nom').value = data.nom;
+            document.getElementById('edit_email').value = data.email;
+            document.getElementById('edit_telephone').value = data.telephone || '';
+            document.getElementById('edit_role').value = data.role;
+            document.getElementById('edit_statut').value = data.statut;
+            document.getElementById('modifierUserForm').dataset.userId = id;
+        });
+}
+
+// Gestion des modales
+function openModal(modalId, userId = null) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'flex';
+    
+    if (modalId === 'voirUserModal' && userId) {
+        chargerDetailsUser(userId);
+    } else if (modalId === 'modifierUserModal' && userId) {
+        chargerModificationUser(userId);
+    }
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Fermeture des modales en cliquant en dehors
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+</script>
+{% endblock %} 

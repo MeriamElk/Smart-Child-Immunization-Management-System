@@ -1,0 +1,76 @@
+
+:root {
+    --lavender: #E6E6FA;
+    --soft-pink: #FFC0CB;
+    --magenta: #FF00FF;
+    --sunset-gradient-start: #FF758C;
+    --sunset-gradient-end: #FF7EB3;
+
+    --primary-blue: var(--lavender);
+    --primary-green: var(--soft-pink);
+    --white: #FFFFFF;
+    --light-blue: #F3E5F5;
+    --light-green: #FCE4EC;
+    --gray-100: #F9F9FB;
+    --gray-800: #4A4A4A;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, var(--sunset-gradient-start), var(--sunset-gradient-end));
+    padding: 6rem 2rem;
+    text-align: center;
+    color: var(--white);
+    margin: -2rem -2rem 2rem -2rem;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+}
+
+.hero-buttons .btn-primary {
+    background-color: var(--magenta);
+}
+
+.hero-buttons .btn-success {
+    background-color: var(--soft-pink);
+    color: #fff;
+}
+
+.feature-icon {
+    color: var(--magenta);
+}
+
+.about-section {
+    background: linear-gradient(135deg, var(--light-blue), var(--light-green));
+    padding: 4rem 2rem;
+    margin: 0 -2rem;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, var(--sunset-gradient-end), var(--magenta));
+    padding: 4rem 2rem;
+    text-align: center;
+    color: var(--white);
+    margin: 4rem -2rem -2rem -2rem;
+}
+
+.btn-primary:hover {
+    background-color: #d400d4;
+}
+
+.btn-success:hover {
+    background-color: #ffa3b2;
+}
+
+.section-title {
+    color: var(--magenta);
+}

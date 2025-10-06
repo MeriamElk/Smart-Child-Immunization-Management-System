@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Politique de confidentialité - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="policy-container">
+    <h1 class="policy-title">Politique de confidentialité</h1>
+
+    <p>
+        Chez <strong>VacciTrack</strong>, la protection de vos données personnelles est une priorité.
+        Nous nous engageons à respecter la confidentialité des informations que vous nous confiez lors de l'utilisation de notre plateforme de gestion des vaccinations infantiles.
+    </p>
+
+    <h2>Collecte des données</h2>
+    <p>Nous collectons uniquement les données nécessaires à la gestion des comptes utilisateurs, au suivi des enfants et à la gestion des vaccinations.</p>
+
+    <h2>Utilisation des données</h2>
+    <p>Les données collectées sont utilisées exclusivement pour le bon fonctionnement de la plateforme et ne sont jamais partagées avec des tiers sans votre consentement.</p>
+
+    <h2>Sécurité</h2>
+    <p>Nous mettons en œuvre des mesures de sécurité avancées pour protéger vos informations contre tout accès non autorisé.</p>
+
+    <h2>Vos droits</h2>
+    <p>Vous pouvez à tout moment demander la modification ou la suppression de vos données personnelles en nous <a href="{{ url_for('contact') }}">contactant</a>.</p>
+
+    <h2>Contact</h2>
+    <p>Pour toute question concernant la confidentialité, veuillez utiliser notre <a href="{{ url_for('contact') }}">formulaire de contact</a>.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.policy-container {
+    max-width: 850px;
+    margin: 3rem auto;
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.07);
+    line-height: 1.8;
+    font-size: 1.05rem;
+    color: var(--warm-gray-700);
+}
+
+.policy-title {
+    font-size: 2.25rem;
+    color: var(--primary-orange);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.policy-container h2 {
+    color: var(--primary-orange);
+    font-size: 1.25rem;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.policy-container a {
+    color: var(--primary-orange);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.policy-container a:hover {
+    color: var(--accent-gold);
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .policy-container {
+        padding: 1.5rem;
+    }
+
+    .policy-title {
+        font-size: 1.75rem;
+    }
+}
+</style>
+{% endblock %}

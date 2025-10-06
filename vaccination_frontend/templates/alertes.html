@@ -1,0 +1,652 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des alertes - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="alertes-container">
+    <div class="page-header">
+        <h1>Gestion des alertes</h1>
+        {% if current_user.role in ['admin', 'medecin'] %}
+        <button class="btn btn-primary" onclick="openModal('ajouterAlerteModal')">
+            <i class="fas fa-plus"></i> Créer une alerte
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="filters-section">
+        <div class="filter-group">
+            <label for="filterType">Type d'alerte</label>
+            <select id="filterType" class="form-control">
+                <option value="">Tous les types</option>
+                <option value="vaccination">Vaccination</option>
+                <option value="rappel">Rappel</option>
+                <option value="urgence">Urgence</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filterUrgence">Niveau d'urgence</label>
+            <select id="filterUrgence" class="form-control">
+                <option value="">Tous les niveaux</option>
+                <option value="basse">Basse</option>
+                <option value="moyenne">Moyenne</option>
+                <option value="haute">Haute</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filterStatut">Statut</label>
+            <select id="filterStatut" class="form-control">
+                <option value="">Tous les statuts</option>
+                <option value="active">Active</option>
+                <option value="résolue">Résolue</option>
+                <option value="archivée">Archivée</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="alertes-grid">
+        {% for alerte in alertes %}
+        <div class="alerte-card {{ alerte.urgence }}">
+            <div class="alerte-header">
+                <div class="alerte-type">
+                    <i class="fas {{ 'fa-syringe' if alerte.type == 'vaccination' else 'fa-bell' if alerte.type == 'rappel' else 'fa-exclamation-triangle' }}"></i>
+                    <span>{{ alerte.type|title }}</span>
+                </div>
+                <div class="alerte-urgence">
+                    <span class="badge {{ alerte.urgence }}">{{ alerte.urgence|title }}</span>
+                </div>
+            </div>
+            <div class="alerte-content">
+                <h3>{{ alerte.titre }}</h3>
+                <p>{{ alerte.description }}</p>
+                <div class="alerte-meta">
+                    <span><i class="fas fa-user"></i> ID enfant : {{ alerte.enfant_id }}</span>
+                    <span><i class="fas fa-calendar"></i> {{ alerte.date_alerte.strftime('%d/%m/%Y') }}</span>
+                </div>
+            </div>
+            <div class="alerte-footer">
+                <span class="alerte-statut {{ alerte.statut|lower }}">{{ alerte.statut }}</span>
+                <div class="alerte-actions">
+                    <button class="btn-icon" onclick="openModal('voirAlerteModal', {{ alerte.id }})" title="Voir détails">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    {% if current_user.role in ['admin', 'medecin'] %}
+                    <button class="btn-icon" onclick="openModal('modifierAlerteModal', {{ alerte.id }})" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon danger" onclick="confirmerSuppression({{ alerte.id }})" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-data">
+            <i class="fas fa-bell-slash"></i>
+            <p>Aucune alerte enregistrée</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Ajouter Alerte -->
+<div id="ajouterAlerteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Créer une alerte</h2>
+            <button class="close-btn" onclick="closeModal('ajouterAlerteModal')">&times;</button>
+        </div>
+        <form id="ajouterAlerteForm" method="POST" action="{{ url_for('create_alerte') }}">
+            <div class="form-group">
+                <label for="type">Type d'alerte</label>
+                <select id="type" name="type" class="form-control" required>
+                    <option value="">Sélectionner...</option>
+                    <option value="vaccination">Vaccination</option>
+                    <option value="rappel">Rappel</option>
+                    <option value="urgence">Urgence</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="titre">Titre</label>
+                <input type="text" id="titre" name="titre" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="enfant_id">Enfant concerné</label>
+                <select id="enfant_id" name="enfant_id" class="form-control" required>
+                    <option value="">Sélectionner un enfant...</option>
+                    {% for enfant in enfants %}
+                    <option value="{{ enfant.id }}">{{ enfant.prenom }} {{ enfant.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="urgence">Niveau d'urgence</label>
+                <select id="urgence" name="urgence" class="form-control" required>
+                    <option value="">Sélectionner...</option>
+                    <option value="basse">Basse</option>
+                    <option value="moyenne">Moyenne</option>
+                    <option value="haute">Haute</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="date_rappel">Date de rappel</label>
+                <input type="date" id="date_rappel" name="date_rappel" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('ajouterAlerteModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Créer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Modifier Alerte -->
+<div id="modifierAlerteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Modifier l'alerte</h2>
+            <button class="close-btn" onclick="closeModal('modifierAlerteModal')">&times;</button>
+        </div>
+        <form id="modifierAlerteForm" method="POST">
+            <div class="form-group">
+                <label for="edit_type">Type d'alerte</label>
+                <select id="edit_type" name="type" class="form-control" required>
+                    <option value="vaccination">Vaccination</option>
+                    <option value="rappel">Rappel</option>
+                    <option value="urgence">Urgence</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_titre">Titre</label>
+                <input type="text" id="edit_titre" name="titre" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_description">Description</label>
+                <textarea id="edit_description" name="description" class="form-control" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="edit_enfant_id">Enfant concerné</label>
+                <select id="edit_enfant_id" name="enfant_id" class="form-control" required>
+                    {% for enfant in enfants %}
+                    <option value="{{ enfant.id }}">{{ enfant.prenom }} {{ enfant.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_urgence">Niveau d'urgence</label>
+                <select id="edit_urgence" name="urgence" class="form-control" required>
+                    <option value="basse">Basse</option>
+                    <option value="moyenne">Moyenne</option>
+                    <option value="haute">Haute</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_statut">Statut</label>
+                <select id="edit_statut" name="statut" class="form-control" required>
+                    <option value="active">Active</option>
+                    <option value="résolue">Résolue</option>
+                    <option value="archivée">Archivée</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_date_rappel">Date de rappel</label>
+                <input type="date" id="edit_date_rappel" name="date_rappel" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modifierAlerteModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Voir Alerte -->
+<div id="voirAlerteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Détails de l'alerte</h2>
+            <button class="close-btn" onclick="closeModal('voirAlerteModal')">&times;</button>
+        </div>
+        <div class="alerte-details">
+            <div class="detail-group">
+                <label>Type</label>
+                <p id="detail_type"></p>
+            </div>
+            <div class="detail-group">
+                <label>Titre</label>
+                <p id="detail_titre"></p>
+            </div>
+            <div class="detail-group">
+                <label>Description</label>
+                <p id="detail_description"></p>
+            </div>
+            <div class="detail-group">
+                <label>Enfant concerné</label>
+                <p id="detail_enfant"></p>
+            </div>
+            <div class="detail-group">
+                <label>Niveau d'urgence</label>
+                <p id="detail_urgence"></p>
+            </div>
+            <div class="detail-group">
+                <label>Statut</label>
+                <p id="detail_statut"></p>
+            </div>
+            <div class="detail-group">
+                <label>Date de création</label>
+                <p id="detail_date_creation"></p>
+            </div>
+            <div class="detail-group">
+                <label>Date de rappel</label>
+                <p id="detail_date_rappel"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal('voirAlerteModal')">Fermer</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.alertes-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.filters-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.alertes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.alerte-card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.alerte-card:hover {
+    transform: translateY(-2px);
+}
+
+.alerte-card.basse {
+    border-left: 4px solid var(--success);
+}
+
+.alerte-card.moyenne {
+    border-left: 4px solid #F59E0B;
+}
+
+.alerte-card.haute {
+    border-left: 4px solid var(--danger);
+}
+
+.alerte-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.alerte-type {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-600);
+}
+
+.alerte-type i {
+    font-size: 1.25rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge.basse {
+    background: var(--light-green);
+    color: var(--success);
+}
+
+.badge.moyenne {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.badge.haute {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+.alerte-content {
+    padding: 1rem;
+}
+
+.alerte-content h3 {
+    color: var(--gray-800);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.alerte-content p {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.alerte-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.alerte-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alerte-footer {
+    padding: 1rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alerte-statut {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.alerte-statut.active {
+    color: var(--success);
+}
+
+.alerte-statut.résolue {
+    color: var(--gray-600);
+}
+
+.alerte-statut.archivée {
+    color: var(--gray-500);
+}
+
+.alerte-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--gray-600);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: var(--gray-100);
+    color: var(--primary-blue);
+}
+
+.btn-icon.danger:hover {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+.no-data {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-500);
+}
+
+.no-data i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    color: var(--gray-800);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--gray-500);
+    cursor: pointer;
+}
+
+.modal form {
+    padding: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.alerte-details {
+    padding: 1.5rem;
+}
+
+.detail-group {
+    margin-bottom: 1rem;
+}
+
+.detail-group label {
+    display: block;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.detail-group p {
+    color: var(--gray-800);
+    font-size: 1rem;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .alertes-container {
+        padding: 1rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .filters-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .alertes-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Fonction de filtrage
+document.getElementById('filterType').addEventListener('change', filterAlertes);
+document.getElementById('filterUrgence').addEventListener('change', filterAlertes);
+document.getElementById('filterStatut').addEventListener('change', filterAlertes);
+
+function filterAlertes() {
+    const typeFilter = document.getElementById('filterType').value.toLowerCase();
+    const urgenceFilter = document.getElementById('filterUrgence').value.toLowerCase();
+    const statutFilter = document.getElementById('filterStatut').value.toLowerCase();
+    const cards = document.querySelectorAll('.alerte-card');
+    
+    cards.forEach(card => {
+        const type = card.querySelector('.alerte-type span').textContent.toLowerCase();
+        const urgence = card.querySelector('.badge').textContent.toLowerCase();
+        const statut = card.querySelector('.alerte-statut').textContent.toLowerCase();
+        
+        const matchesType = !typeFilter || type === typeFilter;
+        const matchesUrgence = !urgenceFilter || urgence === urgenceFilter;
+        const matchesStatut = !statutFilter || statut === statutFilter;
+        
+        card.style.display = matchesType && matchesUrgence && matchesStatut ? '' : 'none';
+    });
+}
+
+// Fonction pour confirmer la suppression
+function confirmerSuppression(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')) {
+        fetch(`/alerte/supprimer/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erreur lors de la suppression');
+            }
+        });
+    }
+}
+
+// Fonction pour charger les détails d'une alerte
+function chargerDetailsAlerte(id) {
+    fetch(`/alerte/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('detail_type').textContent = data.type;
+            document.getElementById('detail_titre').textContent = data.titre;
+            document.getElementById('detail_description').textContent = data.description;
+            document.getElementById('detail_enfant').textContent = `${data.enfant.prenom} ${data.enfant.nom}`;
+            document.getElementById('detail_urgence').textContent = data.urgence;
+            document.getElementById('detail_statut').textContent = data.statut;
+            document.getElementById('detail_date_creation').textContent = data.date_creation;
+            document.getElementById('detail_date_rappel').textContent = data.date_rappel;
+        });
+}
+
+// Fonction pour charger les données de modification
+function chargerModificationAlerte(id) {
+    fetch(`/alerte/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_type').value = data.type;
+            document.getElementById('edit_titre').value = data.titre;
+            document.getElementById('edit_description').value = data.description;
+            document.getElementById('edit_enfant_id').value = data.enfant.id;
+            document.getElementById('edit_urgence').value = data.urgence;
+            document.getElementById('edit_statut').value = data.statut;
+            document.getElementById('edit_date_rappel').value = data.date_rappel;
+            document.getElementById('modifierAlerteForm').action = `/alerte/modifier/${id}`;
+        });
+}
+
+// Gestion des modales
+function openModal(modalId, alerteId = null) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'flex';
+    
+    if (modalId === 'voirAlerteModal' && alerteId) {
+        chargerDetailsAlerte(alerteId);
+    } else if (modalId === 'modifierAlerteModal' && alerteId) {
+        chargerModificationAlerte(alerteId);
+    }
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Fermeture des modales en cliquant en dehors
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+</script>
+{% endblock %} 

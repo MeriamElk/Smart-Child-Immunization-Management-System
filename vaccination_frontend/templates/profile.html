@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+
+{% block title %}Profil - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <div class="avatar-circle">
+                <i class="fas fa-user"></i>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('avatarInput').click()">
+                <i class="fas fa-camera"></i>
+            </button>
+            <input type="file" id="avatarInput" accept="image/*" style="display: none">
+        </div>
+        <div class="profile-info">
+            <h1>{{ current_user.prenom }} {{ current_user.nom }}</h1>
+            <p class="role-badge">{{ current_user.role|title }}</p>
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-section">
+            <h2>Informations personnelles</h2>
+            <form id="personalInfoForm" class="profile-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="prenom">Prénom</label>
+                        <input type="text" id="prenom" name="prenom" value="{{ current_user.prenom }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="nom">Nom</label>
+                        <input type="text" id="nom" name="nom" value="{{ current_user.nom }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="{{ current_user.email }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="telephone">Téléphone</label>
+                        <input type="tel" id="telephone" name="telephone" value="{{ current_user.telephone }}" class="form-control">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            <h2>Sécurité</h2>
+            <form id="passwordForm" class="profile-form">
+                <div class="form-group">
+                    <label for="current_password">Mot de passe actuel</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="new_password">Nouveau mot de passe</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirmer le mot de passe</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Changer le mot de passe</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            <h2>Préférences de notification</h2>
+            <form id="notificationForm" class="profile-form">
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="email_notifications">
+                        Recevoir les notifications par email
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="sms_notifications">
+                        Recevoir les notifications par SMS
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="alertes_urgentes">
+                        Recevoir les alertes urgentes
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Enregistrer les préférences</button>
+                </div>
+            </form>
+        </div>
+
+        {% if current_user.role == 'admin' %}
+        <div class="profile-section">
+            <h2>Paramètres système</h2>
+            <form id="systemSettingsForm" class="profile-form">
+                <div class="form-group">
+                    <label for="maintenance_mode">Mode maintenance</label>
+                    <select id="maintenance_mode" name="maintenance_mode" class="form-control">
+                        <option value="0" {% if not system_settings.maintenance_mode %}selected{% endif %}>Désactivé</option>
+                        <option value="1" {% if system_settings.maintenance_mode %}selected{% endif %}>Activé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="session_timeout">Délai d'expiration de session (minutes)</label>
+                    <input type="number" id="session_timeout" name="session_timeout" value="{{ system_settings.session_timeout }}" class="form-control">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Enregistrer les paramètres</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    position: relative;
+}
+
+.avatar-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--light-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--primary-blue);
+}
+
+.profile-avatar button {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.profile-avatar button:hover {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.profile-info h1 {
+    color: var(--gray-800);
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 1rem;
+    border-radius: 20px;
+    background: var(--light-blue);
+    color: var(--primary-blue);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.profile-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.profile-section h2 {
+    color: var(--gray-800);
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--gray-300);
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 1rem;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Gestion du formulaire d'informations personnelles
+document.getElementById('personalInfoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(Object.fromEntries(formData))
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Profil mis à jour avec succès', 'success');
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur lors de la mise à jour du profil', 'error');
+    });
+});
+
+// Gestion du formulaire de mot de passe
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    if (formData.get('new_password') !== formData.get('confirm_password')) {
+        showNotification('Les mots de passe ne correspondent pas', 'error');
+        return;
+    }
+    
+    fetch('/api/profile/password', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(Object.fromEntries(formData))
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Mot de passe modifié avec succès', 'success');
+            this.reset();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur lors du changement de mot de passe', 'error');
+    });
+});
+
+// Gestion du formulaire de notifications
+document.getElementById('notificationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const preferences = {};
+    
+    for (let [key, value] of formData.entries()) {
+        preferences[key] = value === 'on';
+    }
+    
+    fetch('/api/profile/notifications', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preferences)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Préférences de notification mises à jour', 'success');
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur lors de la mise à jour des préférences', 'error');
+    });
+});
+
+// Gestion du formulaire des paramètres système (admin uniquement)
+const systemSettingsForm = document.getElementById('systemSettingsForm');
+if (systemSettingsForm) {
+    systemSettingsForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch('/api/admin/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Paramètres système mis à jour', 'success');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erreur lors de la mise à jour des paramètres', 'error');
+        });
+    });
+}
+
+// Gestion de l'upload d'avatar
+document.getElementById('avatarInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        fetch('/api/profile/avatar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Photo de profil mise à jour', 'success');
+                // Mettre à jour l'avatar affiché
+                const avatarCircle = document.querySelector('.avatar-circle');
+                if (data.avatar_url) {
+                    avatarCircle.style.backgroundImage = `url(${data.avatar_url})`;
+                    avatarCircle.style.backgroundSize = 'cover';
+                    avatarCircle.style.backgroundPosition = 'center';
+                    avatarCircle.innerHTML = '';
+                }
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erreur lors de la mise à jour de la photo', 'error');
+        });
+    }
+});
+
+// Fonction utilitaire pour afficher les notifications
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+</script>
+{% endblock %} 

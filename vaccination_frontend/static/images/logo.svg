@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cœur stylisé, trait main -->
+  <path d="M10 25 Q10 10 30 15 Q50 10 50 25 Q50 40 30 55 Q10 40 10 25 Z" fill="#E3F0FC" stroke="#4A90E2" stroke-width="2.5"/>
+  <!-- Enfant stylisé (tête) -->
+  <circle cx="30" cy="28" r="4" fill="#4A90E2"/>
+  <!-- Enfant stylisé (corps) -->
+  <rect x="28.5" y="32" width="3" height="10" rx="1.5" fill="#4A90E2"/>
+  <!-- Enfant stylisé (bras ouverts) -->
+  <path d="M30 34 Q24 36 22 30" stroke="#4A90E2" stroke-width="2" stroke-linecap="round"/>
+  <path d="M30 34 Q36 36 38 30" stroke="#4A90E2" stroke-width="2" stroke-linecap="round"/>
+  <!-- Seringue stylisée intégrée dans la courbe du cœur -->
+  <rect x="41" y="18" width="2" height="14" rx="1" fill="#4A90E2"/>
+  <rect x="40" y="18" width="4" height="2" rx="1" fill="#4A90E2"/>
+  <rect x="41.5" y="15" width="1" height="4" rx="0.5" fill="#4A90E2"/>
+  <circle cx="42" cy="14" r="1.2" fill="#4A90E2"/>
+</svg> 

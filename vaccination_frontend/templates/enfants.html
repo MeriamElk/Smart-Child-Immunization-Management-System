@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des enfants - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="enfants-container">
+    <div class="page-header">
+        <h1>Gestion des enfants</h1>
+        {% if current_user.role in ['admin', 'medecin'] %}
+        <button class="btn btn-primary" onclick="openModal('ajouterEnfantModal')">
+            <i class="fas fa-plus"></i> Ajouter un enfant
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="search-bar">
+        <div class="search-input">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchEnfant" placeholder="Rechercher un enfant..." class="form-control">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Prénom</th>
+                    <th>Nom</th>
+                    <th>Sexe</th>
+                    <th>Âge</th>
+                    <th>Statut vaccinal</th>
+                    {% if current_user.role in ['admin', 'medecin'] %}<th>Parent</th>
+                    {% endif %}
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enfant in enfants %}
+                <tr>
+                    <td>{{ enfant.prenom }}</td>
+                    <td>{{ enfant.nom }}</td>
+                    <td>{{ enfant.sexe }}</td>
+                    <td>{{ enfant.age }} ans</td>
+                    <td>
+                        {% set badge_class = enfant.statut_vaccinal|lower|replace(' ', '-') %}
+                        <span class="status-badge {{ badge_class }}">
+                            {{ enfant.statut_vaccinal }}
+                        </span>
+                    </td>
+
+                    
+                    {% if current_user.role in ['admin', 'medecin'] %}
+                    <td>
+                        {% for parent in parents %}
+                            {% if parent.id_utilisateur == enfant.parent_id %}
+                                {{ parent.nom }} ({{ parent.email }})
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    {% endif %}
+                    
+                    <td class="actions">
+                        <button class="btn-icon" onclick="openModal('voirEnfantModal', {{ enfant.id_enfant }})" title="Voir détails">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        {% if current_user.role in ['admin', 'medecin'] %}
+                        <button class="btn-icon" onclick="openModal('modifierEnfantModal', {{ enfant.id_enfant }})" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon danger" onclick="confirmerSuppression({{ enfant.id_enfant }})" title="Supprimer">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="no-data">Aucun enfant enregistré</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Ajouter Enfant -->
+<div id="ajouterEnfantModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Ajouter un enfant</h2>
+            <button class="close-btn" onclick="closeModal('ajouterEnfantModal')">&times;</button>
+        </div>
+        <form id="ajouterEnfantForm" method="POST" action="{{ url_for('create_enfant') }}">
+            <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="sexe">Sexe</label>
+                <select id="sexe" name="sexe" class="form-control" required>
+                    <option value="">Sélectionner...</option>
+                    <option value="M">Masculin</option>
+                    <option value="F">Féminin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="date_naissance">Date de naissance</label>
+                <input type="date" id="date_naissance" name="date_naissance" class="form-control" required>
+            </div>
+            {% if current_user.role == 'parent' %}
+                <input type="hidden" name="parent_id" value="{{ current_user.id_utilisateur }}">
+            {% else %}
+                <div class="form-group">
+                    <label for="parent_id">Parent responsable</label>
+                    <select id="parent_id" name="parent_id" class="form-control" required>
+                        <option value="">Sélectionner...</option>
+                        {% for parent in parents %}
+                        <option value="{{ parent.id_utilisateur }}">{{ parent.email }}</option>{% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('ajouterEnfantModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Modifier Enfant -->
+<div id="modifierEnfantModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Modifier l'enfant</h2>
+            <button class="close-btn" onclick="closeModal('modifierEnfantModal')">&times;</button>
+        </div>
+        <form id="modifierEnfantForm" method="POST">
+            <div class="form-group">
+                <label for="edit_prenom">Prénom</label>
+                <input type="text" id="edit_prenom" name="prenom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_nom">Nom</label>
+                <input type="text" id="edit_nom" name="nom" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_sexe">Sexe</label>
+                <select id="edit_sexe" name="sexe" class="form-control" required>
+                    <option value="M">Masculin</option>
+                    <option value="F">Féminin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_date_naissance">Date de naissance</label>
+                <input type="date" id="edit_date_naissance" name="date_naissance" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modifierEnfantModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Voir Enfant -->
+<div id="voirEnfantModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Détails de l'enfant</h2>
+            <button class="close-btn" onclick="closeModal('voirEnfantModal')">&times;</button>
+        </div>
+        <div class="enfant-details">
+            <div class="detail-group">
+                <label>Prénom</label>
+                <p id="detail_prenom"></p>
+            </div>
+            <div class="detail-group">
+                <label>Nom</label>
+                <p id="detail_nom"></p>
+            </div>
+            <div class="detail-group">
+                <label>Sexe</label>
+                <p id="detail_sexe"></p>
+            </div>
+            <div class="detail-group">
+                <label>Âge</label>
+                <p id="detail_age"></p>
+            </div>
+            <div class="detail-group">
+                <label>Statut vaccinal</label>
+                <p id="detail_statut"></p>
+            </div>
+            <div class="detail-group">
+                <label>Parent responsable</label>
+                <p id="detail_parent"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal('voirEnfantModal')">Fermer</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.enfants-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.search-bar {
+    margin-bottom: 1.5rem;
+}
+
+.search-input {
+    position: relative;
+    max-width: 400px;
+}
+
+.search-input i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+}
+
+.search-input input {
+    padding-left: 2.5rem;
+}
+
+.table-responsive {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: var(--gray-100);
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem;
+}
+
+.table td {
+    padding: 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    text-transform: capitalize;
+}
+
+/* Couleurs cohérentes */
+.status-badge.a-jour {
+    background-color: #D1FAE5;
+    color: #059669;
+}
+
+.status-badge.en-retard {
+    background-color: #FEF3C7;
+    color: #D97706;
+}
+
+.status-badge.urgent {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--gray-600);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: var(--gray-100);
+    color: var(--primary-blue);
+}
+
+.btn-icon.danger:hover {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    color: var(--gray-800);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--gray-500);
+    cursor: pointer;
+}
+
+.modal form {
+    padding: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.enfant-details {
+    padding: 1.5rem;
+}
+
+.detail-group {
+    margin-bottom: 1rem;
+}
+
+.detail-group label {
+    display: block;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.detail-group p {
+    color: var(--gray-800);
+    font-size: 1rem;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .enfants-container {
+        padding: 1rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .actions {
+        flex-wrap: wrap;
+    }
+}
+</style>
+
+<script>
+// Fonction de recherche
+document.getElementById('searchEnfant').addEventListener('input', function(e) {
+    const term = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.table tbody tr');
+
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(term) ? '' : 'none';
+    });
+});
+
+
+
+// Fonction pour confirmer la suppression
+function confirmerSuppression(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet enfant ?')) {
+        fetch(`/api/enfants/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erreur lors de la suppression');
+            }
+        });
+    }
+}
+
+// Fonction pour charger les détails d'un enfant
+function chargerDetailsEnfant(id) {
+    fetch(`/enfant/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('detail_prenom').textContent = data.prenom;
+            document.getElementById('detail_nom').textContent = data.nom;
+            document.getElementById('detail_sexe').textContent = data.sexe === 'M' ? 'Masculin' : 'Féminin';
+            document.getElementById('detail_age').textContent = `${data.age} ans`;
+            document.getElementById('detail_statut').textContent = data.statut_vaccinal;
+            document.getElementById('detail_parent').textContent = data.parent;
+        });
+}
+
+// Fonction pour charger les données de modification
+function chargerModificationEnfant(id) {
+    fetch(`/enfant/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_prenom').value = data.prenom;
+            document.getElementById('edit_nom').value = data.nom;
+            document.getElementById('edit_sexe').value = data.sexe;
+            document.getElementById('edit_date_naissance').value = data.date_naissance;
+            document.getElementById('modifierEnfantForm').action = `/enfant/modifier/${id}`;
+        });
+}
+
+// Gestion des modales
+function openModal(modalId, enfantId = null) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'flex';
+    
+    if (modalId === 'voirEnfantModal' && enfantId) {
+        chargerDetailsEnfant(enfantId);
+    } else if (modalId === 'modifierEnfantModal' && enfantId) {
+        chargerModificationEnfant(enfantId);
+    }
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Fermeture des modales en cliquant en dehors
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+</script>
+<script>
+document.getElementById('ajouterEnfantForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const data = {
+        prenom: document.getElementById('prenom').value,
+        nom: document.getElementById('nom').value,
+        sexe: document.getElementById('sexe').value,
+        date_naissance: document.getElementById('date_naissance').value,
+        parent_id: document.getElementById('parent_id').value
+    };
+
+    const response = await fetch('/api/enfants', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    fetch('/api/enfants/1', {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Enfant supprimé !");
+        } else {
+            alert("Erreur : " + data.message);
+        }
+    });
+
+    const result = await response.json();
+    if (result.success) {
+        alert("✅ Enfant ajouté !");
+        window.location.reload();
+    } else {
+        alert("❌ Échec : " + result.message);
+    }
+});
+</script>
+{% endblock %} 

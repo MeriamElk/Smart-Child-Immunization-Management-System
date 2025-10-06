@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration système - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="config-container">
+    <div class="page-header">
+        <h1>Configuration système</h1>
+        <button class="btn btn-primary" onclick="saveAllSettings()">
+            <i class="fas fa-save"></i> Enregistrer tous les changements
+        </button>
+    </div>
+
+    <div class="config-sections">
+        <!-- Section Générale -->
+        <div class="config-section">
+            <h2>Paramètres généraux</h2>
+            <form id="generalSettingsForm" class="config-form">
+                <div class="form-group">
+                    <label for="app_name">Nom de l'application</label>
+                    <input type="text" id="app_name" name="app_name" value="{{ config.app_name }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="maintenance_mode">Mode maintenance</label>
+                    <select id="maintenance_mode" name="maintenance_mode" class="form-control">
+                        <option value="0" {% if not config.maintenance_mode %}selected{% endif %}>Désactivé</option>
+                        <option value="1" {% if config.maintenance_mode %}selected{% endif %}>Activé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="session_timeout">Délai d'expiration de session (minutes)</label>
+                    <input type="number" id="session_timeout" name="session_timeout" value="{{ config.session_timeout }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="max_login_attempts">Nombre maximum de tentatives de connexion</label>
+                    <input type="number" id="max_login_attempts" name="max_login_attempts" value="{{ config.max_login_attempts }}" class="form-control">
+                </div>
+            </form>
+        </div>
+
+        <!-- Section Notifications -->
+        <div class="config-section">
+            <h2>Paramètres des notifications</h2>
+            <form id="notificationSettingsForm" class="config-form">
+                <div class="form-group">
+                    <label for="email_notifications">Activer les notifications par email</label>
+                    <select id="email_notifications" name="email_notifications" class="form-control">
+                        <option value="1" {% if config.email_notifications %}selected{% endif %}>Activé</option>
+                        <option value="0" {% if not config.email_notifications %}selected{% endif %}>Désactivé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="smtp_server">Serveur SMTP</label>
+                    <input type="text" id="smtp_server" name="smtp_server" value="{{ config.smtp_server }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_port">Port SMTP</label>
+                    <input type="number" id="smtp_port" name="smtp_port" value="{{ config.smtp_port }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_username">Nom d'utilisateur SMTP</label>
+                    <input type="text" id="smtp_username" name="smtp_username" value="{{ config.smtp_username }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_password">Mot de passe SMTP</label>
+                    <input type="password" id="smtp_password" name="smtp_password" value="{{ config.smtp_password }}" class="form-control">
+                </div>
+            </form>
+        </div>
+
+        <!-- Section Sécurité -->
+        <div class="config-section">
+            <h2>Paramètres de sécurité</h2>
+            <form id="securitySettingsForm" class="config-form">
+                <div class="form-group">
+                    <label for="password_min_length">Longueur minimale des mots de passe</label>
+                    <input type="number" id="password_min_length" name="password_min_length" value="{{ config.password_min_length }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="password_require_special">Exiger des caractères spéciaux</label>
+                    <select id="password_require_special" name="password_require_special" class="form-control">
+                        <option value="1" {% if config.password_require_special %}selected{% endif %}>Oui</option>
+                        <option value="0" {% if not config.password_require_special %}selected{% endif %}>Non</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="password_require_numbers">Exiger des chiffres</label>
+                    <select id="password_require_numbers" name="password_require_numbers" class="form-control">
+                        <option value="1" {% if config.password_require_numbers %}selected{% endif %}>Oui</option>
+                        <option value="0" {% if not config.password_require_numbers %}selected{% endif %}>Non</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="password_expiry_days">Expiration des mots de passe (jours)</label>
+                    <input type="number" id="password_expiry_days" name="password_expiry_days" value="{{ config.password_expiry_days }}" class="form-control">
+                </div>
+            </form>
+        </div>
+
+        <!-- Section Sauvegarde -->
+        <div class="config-section">
+            <h2>Sauvegarde et maintenance</h2>
+            <form id="backupSettingsForm" class="config-form">
+                <div class="form-group">
+                    <label for="backup_frequency">Fréquence de sauvegarde</label>
+                    <select id="backup_frequency" name="backup_frequency" class="form-control">
+                        <option value="daily" {% if config.backup_frequency == 'daily' %}selected{% endif %}>Quotidienne</option>
+                        <option value="weekly" {% if config.backup_frequency == 'weekly' %}selected{% endif %}>Hebdomadaire</option>
+                        <option value="monthly" {% if config.backup_frequency == 'monthly' %}selected{% endif %}>Mensuelle</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="backup_retention">Conservation des sauvegardes (jours)</label>
+                    <input type="number" id="backup_retention" name="backup_retention" value="{{ config.backup_retention }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="backup_path">Chemin de sauvegarde</label>
+                    <input type="text" id="backup_path" name="backup_path" value="{{ config.backup_path }}" class="form-control">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="createBackup()">
+                        <i class="fas fa-download"></i> Créer une sauvegarde
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="restoreBackup()">
+                        <i class="fas fa-upload"></i> Restaurer une sauvegarde
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de restauration -->
+<div id="restoreModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Restaurer une sauvegarde</h2>
+            <button class="close-btn" onclick="closeModal('restoreModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="backup-list">
+                {% for backup in backups %}
+                <div class="backup-item">
+                    <div class="backup-info">
+                        <span class="backup-date">{{ backup.date }}</span>
+                        <span class="backup-size">{{ backup.size }}</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="confirmRestore('{{ backup.filename }}')">
+                        <i class="fas fa-undo"></i> Restaurer
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.config-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.config-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+}
+
+.config-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.config-section h2 {
+    color: var(--gray-800);
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.config-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    color: var(--gray-800);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--gray-500);
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.backup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.backup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+}
+
+.backup-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.backup-date {
+    color: var(--gray-800);
+    font-weight: 500;
+}
+
+.backup-size {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .config-container {
+        padding: 1rem;
+    }
+    
+    .config-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Fonction pour sauvegarder tous les paramètres
+function saveAllSettings() {
+    const forms = [
+        'generalSettingsForm',
+        'notificationSettingsForm',
+        'securitySettingsForm',
+        'backupSettingsForm'
+    ];
+    
+    const allSettings = {};
+    
+    forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        const formData = new FormData(form);
+        for (let [key, value] of formData.entries()) {
+            allSettings[key] = value;
+        }
+    });
+    
+    fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(allSettings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Paramètres sauvegardés avec succès', 'success');
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur lors de la sauvegarde des paramètres', 'error');
+    });
+}
+
+// Fonction pour créer une sauvegarde
+function createBackup() {
+    fetch('/api/admin/backup/create', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Sauvegarde créée avec succès', 'success');
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur lors de la création de la sauvegarde', 'error');
+    });
+}
+
+// Fonction pour ouvrir le modal de restauration
+function restoreBackup() {
+    openModal('restoreModal');
+}
+
+// Fonction pour confirmer la restauration
+function confirmRestore(filename) {
+    if (confirm('Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cette action est irréversible.')) {
+        fetch('/api/admin/backup/restore', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filename })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Sauvegarde restaurée avec succès', 'success');
+                closeModal('restoreModal');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erreur lors de la restauration', 'error');
+        });
+    }
+}
+
+// Gestion des modales
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Fermeture des modales en cliquant en dehors
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+
+// Fonction utilitaire pour afficher les notifications
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+</script>
+{% endblock %} 

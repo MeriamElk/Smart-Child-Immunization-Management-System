@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des vaccinations - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="vaccinations-container">
+    <div class="page-header">
+        <h1>Gestion des vaccinations</h1>
+        <button class="btn btn-primary" onclick="openModal('ajouterVaccinationModal')">
+            <i class="fas fa-plus"></i> Enregistrer une vaccination
+        </button>
+    </div>
+
+    <div class="filters-section">
+        <div class="filter-group">
+            <label for="filterEnfant">Enfant</label>
+            <select id="filterEnfant" class="form-control">
+                <option value="">Tous les enfants</option>
+                {% for enfant in enfants %}
+                <option value="{{ enfant.id }}">{{ enfant.prenom }} {{ enfant.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filterVaccin">Vaccin</label>
+            <select id="filterVaccin" class="form-control">
+                <option value="">Tous les vaccins</option>
+                {% for vaccin in vaccins %}
+                <option value="{{ vaccin.vaccin_id }}">{{ vaccin.nom_vaccin }}</option>
+                {% endfor %}
+            </select>            
+        </div>
+        <div class="filter-group">
+            <label for="filterStatut">Statut</label>
+            <select id="filterStatut" class="form-control">
+                <option value="">Tous les statuts</option>
+                <option value="à jour">À jour</option>
+                <option value="en retard">En retard</option>
+                <option value="urgent">Urgent</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Enfant</th>
+                    <th>Vaccin</th>
+                    <th>Date</th>
+                    <th>Dose</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vaccination in vaccinations %}
+                <tr>
+                    <td>{{ vaccination.prenom }} {{ vaccination.nom }}</td>
+                    <td>{{ vaccination.vaccin }}</td>
+                    <td>{{ vaccination.date }}</td>
+                    <td>{{ vaccination.dose }}</td>
+                    <td>
+                        <span class="status-badge {{ vaccination.statut|lower }}">
+                            {{ vaccination.statut }}
+                        </span>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-icon" onclick="openModal('voirVaccinationModal', {{ vaccination.id }})" title="Voir détails">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        {% if current_user.role in ['admin', 'medecin'] %}
+                        <button class="btn-icon" onclick="openModal('modifierVaccinationModal', {{ vaccination.id }})" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon danger" onclick="confirmerSuppression({{ vaccination.id }})" title="Supprimer">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="no-data">Aucune vaccination enregistrée</td>
+                </tr>
+                {% endfor %}
+            </tbody>            
+        </table>
+    </div>
+</div>
+
+<!-- Modal Ajouter Vaccination -->
+<div id="ajouterVaccinationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Enregistrer une vaccination</h2>
+            <button class="close-btn" onclick="closeModal('ajouterVaccinationModal')">&times;</button>
+        </div>
+        <form id="ajouterVaccinationForm" method="POST" action="{{ url_for('create_vaccination') }}">
+            <div class="form-group">
+                <label for="enfant_id">Enfant</label>
+                <select id="enfant_id" name="id_enfant" class="form-control" required>
+                    <option value="">Sélectionner un enfant...</option>
+                    {% for enfant in enfants %}
+                    <option value="{{ enfant.id_enfant }}">{{ enfant.prenom }} {{ enfant.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vaccin_id">Vaccin</label>
+                <select id="vaccin_id" name="vaccin_id" class="form-control" required>
+                    <option value="">Sélectionner un vaccin...</option>
+                    {% for vaccin in vaccins %}
+                    <option value="{{ vaccin.vaccin_id }}">{{ vaccin.nom_vaccin }}</option>
+                    {% endfor %}
+                </select>
+                
+            </div>
+            <div class="form-group">
+                <label for="date">Date de vaccination</label>
+                <input type="date" id="date" name="date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="dose">Numéro de dose</label>
+                <input type="number" id="dose" name="dose" class="form-control" required min="1">
+            </div>
+            <div class="form-group">
+                <label for="medecin">Médecin</label>
+                <input type="text" id="medecin" name="medecin" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('ajouterVaccinationModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Modifier Vaccination -->
+<div id="modifierVaccinationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Modifier la vaccination</h2>
+            <button class="close-btn" onclick="closeModal('modifierVaccinationModal')">&times;</button>
+        </div>
+        <form id="modifierVaccinationForm" method="POST">
+            <div class="form-group">
+                <label for="edit_enfant_id">Enfant</label>
+                <select id="edit_enfant_id" name="enfant_id" class="form-control" required>
+                    {% for enfant in enfants %}
+                    <option value="{{ enfant.id }}">{{ enfant.prenom }} {{ enfant.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_vaccin_id">Vaccin</label>
+                <select id="edit_vaccin_id" name="vaccin_id" class="form-control" required>
+                    {% for vaccin in vaccins %}
+                    <option value="{{ vaccin.id }}">{{ vaccin.nom_vaccin }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_date">Date de vaccination</label>
+                <input type="date" id="edit_date" name="date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_dose">Numéro de dose</label>
+                <input type="number" id="edit_dose" name="dose" class="form-control" required min="1">
+            </div>
+            <div class="form-group">
+                <label for="edit_medecin">Médecin</label>
+                <input type="text" id="edit_medecin" name="medecin" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_notes">Notes</label>
+                <textarea id="edit_notes" name="notes" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modifierVaccinationModal')">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Voir Vaccination -->
+<div id="voirVaccinationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Détails de la vaccination</h2>
+            <button class="close-btn" onclick="closeModal('voirVaccinationModal')">&times;</button>
+        </div>
+        <div class="vaccination-details">
+            <div class="detail-group">
+                <label>Enfant</label>
+                <p id="detail_enfant"></p>
+            </div>
+            <div class="detail-group">
+                <label>Vaccin</label>
+                <p id="detail_vaccin"></p>
+            </div>
+            <div class="detail-group">
+                <label>Date</label>
+                <p id="detail_date"></p>
+            </div>
+            <div class="detail-group">
+                <label>Dose</label>
+                <p id="detail_dose"></p>
+            </div>
+            <div class="detail-group">
+                <label>Statut</label>
+                <p id="detail_statut"></p>
+            </div>
+            <div class="detail-group">
+                <label>Médecin</label>
+                <p id="detail_medecin"></p>
+            </div>
+            <div class="detail-group">
+                <label>Notes</label>
+                <p id="detail_notes"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="closeModal('voirVaccinationModal')">Fermer</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.vaccinations-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.filters-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.table-responsive {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: var(--gray-100);
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem;
+}
+
+.table td {
+    padding: 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-badge.à jour {
+    background: var(--light-green);
+    color: var(--success);
+}
+
+.status-badge.en retard {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.status-badge.urgent {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--gray-600);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: var(--gray-100);
+    color: var(--primary-blue);
+}
+
+.btn-icon.danger:hover {
+    background: #FEE2E2;
+    color: var(--danger);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    color: var(--gray-800);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--gray-500);
+    cursor: pointer;
+}
+
+.modal form {
+    padding: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.vaccination-details {
+    padding: 1.5rem;
+}
+
+.detail-group {
+    margin-bottom: 1rem;
+}
+
+.detail-group label {
+    display: block;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.detail-group p {
+    color: var(--gray-800);
+    font-size: 1rem;
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .vaccinations-container {
+        padding: 1rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .filters-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .actions {
+        flex-wrap: wrap;
+    }
+}
+</style>
+
+<script>
+// Fonction de filtrage
+document.getElementById('filterEnfant').addEventListener('change', filterVaccinations);
+document.getElementById('filterVaccin').addEventListener('change', filterVaccinations);
+document.getElementById('filterStatut').addEventListener('change', filterVaccinations);
+
+function filterVaccinations() {
+    const enfantFilter = document.getElementById('filterEnfant').value;
+    const vaccinFilter = document.getElementById('filterVaccin').value;
+    const statutFilter = document.getElementById('filterStatut').value.toLowerCase();
+    const rows = document.querySelectorAll('.table tbody tr');
+    
+    rows.forEach(row => {
+        const enfant = row.cells[0].textContent;
+        const vaccin = row.cells[1].textContent;
+        const statut = row.querySelector('.status-badge').textContent.toLowerCase();
+        
+        const matchesEnfant = !enfantFilter || enfant.includes(enfantFilter);
+        const matchesVaccin = !vaccinFilter || vaccin.includes(vaccinFilter);
+        const matchesStatut = !statutFilter || statut === statutFilter;
+        
+        row.style.display = matchesEnfant && matchesVaccin && matchesStatut ? '' : 'none';
+    });
+}
+
+// Fonction pour confirmer la suppression
+function confirmerSuppression(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette vaccination ?')) {
+        fetch(`/vaccination/supprimer/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Erreur lors de la suppression');
+            }
+        });
+    }
+}
+
+// Fonction pour charger les détails d'une vaccination
+function chargerDetailsVaccination(id) {
+    fetch(`/vaccination/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('detail_enfant').textContent = `${data.enfant.prenom} ${data.enfant.nom}`;
+            document.getElementById('detail_vaccin').textContent = data.vaccin.nom;
+            document.getElementById('detail_date').textContent = data.date;
+            document.getElementById('detail_dose').textContent = `${data.dose}/${data.vaccin.nombre_doses}`;
+            document.getElementById('detail_statut').textContent = data.statut;
+            document.getElementById('detail_medecin').textContent = data.medecin;
+            document.getElementById('detail_notes').textContent = data.notes || 'Aucune note';
+        });
+}
+
+// Fonction pour charger les données de modification
+function chargerModificationVaccination(id) {
+    fetch(`/vaccination/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_enfant_id').value = data.enfant.id;
+            document.getElementById('edit_vaccin_id').value = data.vaccin.id;
+            document.getElementById('edit_date').value = data.date;
+            document.getElementById('edit_dose').value = data.dose;
+            document.getElementById('edit_medecin').value = data.medecin;
+            document.getElementById('edit_notes').value = data.notes || '';
+            document.getElementById('modifierVaccinationForm').action = `/vaccination/modifier/${id}`;
+        });
+}
+
+// Gestion des modales
+function openModal(modalId, vaccinationId = null) {
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'flex';
+    
+    if (modalId === 'voirVaccinationModal' && vaccinationId) {
+        chargerDetailsVaccination(vaccinationId);
+    } else if (modalId === 'modifierVaccinationModal' && vaccinationId) {
+        chargerModificationVaccination(vaccinationId);
+    }
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+fetch(`/api/vaccinations/${id}`, {
+    method: 'DELETE',
+    headers: {
+        'Content-Type': 'application/json'
+    }
+})
+.then(response => {
+    if (response.ok) {
+        window.location.reload();
+    } else {
+        alert('Erreur lors de la suppression');
+    }
+});
+
+// Fermeture des modales en cliquant en dehors
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
+
+// Mise à jour dynamique du numéro de dose maximum
+document.getElementById('vaccin_id').addEventListener('change', function() {
+    const vaccinId = this.value;
+    if (vaccinId) {
+        fetch(`/vaccin/${vaccinId}`)
+            .then(response => response.json())
+            .then(data => {
+                const doseInput = document.getElementById('dose');
+                doseInput.max = data.nombre_doses;
+                doseInput.placeholder = `1 à ${data.nombre_doses}`;
+            });
+    }
+});
+document.getElementById('formVaccination').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const data = {
+    id_enfant: parseInt(document.getElementById('id_enfant').value),
+    vaccin_id: parseInt(document.getElementById('vaccin_id').value),
+    dose: parseInt(document.getElementById('dose').value),
+    date_vaccination: document.getElementById('date_vaccination').value,
+    statut_vaccination: document.getElementById('statut').value
+  };
+
+  fetch('/api/vaccinations', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(response => {
+    if (response.success) {
+      alert('Vaccination ajoutée !');
+      window.location.reload();
+    } else {
+      alert('Erreur : ' + response.message);
+    }
+  })
+  .catch(err => {
+    alert('Erreur réseau');
+    console.error(err);
+  });
+});
+
+</script>
+{% endblock %} 

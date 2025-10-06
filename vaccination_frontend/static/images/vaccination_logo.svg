@@ -1,0 +1,49 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Dégradés chaleureux -->
+    <linearGradient id="warmGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB347;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="softGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8A80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFE4E1;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A7C957;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Ombre douce -->
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#FF6B35" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Fond du logo avec forme douce -->
+  <rect x="5" y="5" width="70" height="70" rx="20" fill="url(#softGradient)" filter="url(#softShadow)" opacity="0.1"/>
+  
+  <!-- Bouclier de protection (symbole de vaccination/protection) -->
+  <path d="M40 15 C35 15, 30 18, 30 25 L30 45 C30 55, 35 60, 40 65 C45 60, 50 55, 50 45 L50 25 C50 18, 45 15, 40 15 Z" 
+        fill="url(#shieldGradient)" 
+        stroke="#059669" 
+        stroke-width="1" 
+        opacity="0.9"/>
+  
+  <!-- Croix médicale moderne au centre du bouclier -->
+  <rect x="37" y="25" width="6" height="20" rx="3" fill="white"/>
+  <rect x="32" y="32" width="16" height="6" rx="3" fill="white"/>
+  
+  <!-- Petites étoiles/points représentant les enfants/soins -->
+  <circle cx="25" cy="25" r="3" fill="url(#warmGradient)" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="55" cy="30" r="2.5" fill="#FFB347" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="20" cy="50" r="2" fill="#FF8A80" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" repeatCount="indefinite"/>
+  </circle>
+</svg>

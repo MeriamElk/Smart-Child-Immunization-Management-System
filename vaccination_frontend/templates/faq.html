@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ - VacciTrack{% endblock %}
+
+{% block content %}
+<div class="faq-container">
+    <h1 class="faq-title">Foire aux questions (FAQ)</h1>
+
+    <div class="faq-item">
+        <h2><i class="fas fa-user-plus faq-icon"></i> Comment créer un compte ?</h2>
+        <p>Rendez-vous sur la page d'inscription et remplissez le formulaire avec vos informations personnelles.</p>
+    </div>
+
+    <div class="faq-item">
+        <h2><i class="fas fa-child faq-icon"></i> Comment ajouter un enfant ?</h2>
+        <p>Après connexion, accédez à la section <strong>Enfants</strong> et cliquez sur <em>Ajouter un enfant</em>.</p>
+    </div>
+
+    <div class="faq-item">
+        <h2><i class="fas fa-syringe faq-icon"></i> Comment enregistrer une vaccination ?</h2>
+        <p>Dans la fiche de l'enfant, cliquez sur <em>Ajouter une vaccination</em> et complétez les informations demandées.</p>
+    </div>
+
+    <div class="faq-item">
+        <h2><i class="fas fa-bell faq-icon"></i> Comment recevoir des alertes ?</h2>
+        <p>Les alertes sont générées automatiquement selon le calendrier vaccinal et s'affichent dans la section <strong>Alertes</strong>.</p>
+    </div>
+
+    <div class="faq-item">
+        <h2><i class="fas fa-envelope faq-icon"></i> Qui contacter en cas de problème ?</h2>
+        <p>Utilisez le <a href="{{ url_for('contact') }}">formulaire de contact</a> pour toute question ou difficulté rencontrée sur la plateforme.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.faq-container {
+    max-width: 900px;
+    margin: 3rem auto;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.1);
+    animation: fadeIn 0.6s ease;
+}
+.faq-container a {
+    color: var(--primary-orange);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.faq-container a:hover {
+    color: var(--accent-gold);
+    text-decoration: underline;
+}
+
+.faq-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: var(--primary-orange);
+}
+
+.faq-item {
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--primary-orange);
+    padding-left: 1rem;
+}
+
+.faq-item h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--warm-gray-800);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.faq-item p {
+    color: var(--warm-gray-600);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.faq-icon {
+    color: var(--primary-orange);
+}
+
+@media (max-width: 768px) {
+    .faq-title {
+        font-size: 2rem;
+    }
+    .faq-item h2 {
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}

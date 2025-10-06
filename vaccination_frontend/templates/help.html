@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Centre d'aide - VacciTrack{% endblock %}
+
+{% block content %}
+<section class="help-wrapper fade-in" style="display: flex; justify-content: center; padding: 2rem;">
+  <div class="container" style="max-width: 900px; width: 100%;">
+    <h1 class="section-title text-center">Centre d'aide VacciTrack</h1>
+    <p class="text-center mb-4">Retrouvez ici les réponses à vos questions et les guides pour bien utiliser la plateforme.</p>
+
+    <div class="faq-section card">
+      <h2 class="card-title">Questions fréquentes</h2>
+      <div class="faq-list">
+        {% for question, steps in [
+          ("Comment ajouter un enfant ?", ["Accédez à la section \"Enfants\"", "Cliquez sur \"Ajouter un enfant\"", "Remplissez le formulaire", "Cliquez sur \"Enregistrer\""]),
+          ("Comment gérer les vaccinations ?", ["Accédez à \"Vaccinations\"", "Filtrez selon l'enfant", "Ajoutez une vaccination avec date et vaccin", "Enregistrez"]),
+          ("Comment recevoir les alertes ?", ["Accédez à votre profil", "Section \"Préférences de notification\"", "Activez email ou SMS", "Enregistrez"])
+        ] %}
+        <div class="faq-item">
+          <h3 class="faq-question">{{ question }}</h3>
+          <div class="faq-answer">
+            <ol>
+              {% for step in steps %}<li>{{ step }}</li>{% endfor %}
+            </ol>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="guides-section card">
+      <h2 class="card-title">Guides d'utilisation</h2>
+      <div class="guides-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        {% for guide in [
+          ('Premiers pas', 'Guide complet pour démarrer sur VacciTrack'),
+          ('Gestion des vaccins', 'Ajoutez, modifiez et suivez les vaccinations'),
+          ('Alertes et notifications', 'Soyez averti à temps pour chaque rappel'),
+          ('Analyses et rapports', 'Consultez les statistiques et historiques')
+        ] %}
+        <div class="guide-box">
+          <h3>{{ guide[0] }}</h3>
+          <p>{{ guide[1] }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="support-section card">
+      <h2 class="card-title">Support</h2>
+      <div class="support-options" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="support-box">
+          <h3>Contactez-nous</h3>
+          <p>Des questions ou problèmes ? Utilisez la page de contact pour nous joindre.</p>
+        </div>
+        <div class="support-box">
+          <h3>Support téléphonique</h3>
+          <p>Du lundi au vendredi de 9h à 18h</p>
+          <p class="phone-highlight">📞 01 23 45 67 89</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

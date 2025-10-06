@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}VacciTrack - Suivi des vaccinations infantiles{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Bienvenue sur VacciTrack</h1>
+        <p class="hero-subtitle">Votre partenaire de confiance pour le suivi des vaccinations infantiles</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Se connecter</a>
+            <a href="{{ url_for('contact') }}" class="btn btn-success">Nous contacter</a>
+        </div>
+    </div>
+</div>
+
+<section class="features-section">
+    <h2 class="section-title">Pourquoi choisir VacciTrack ?</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fas fa-shield-alt feature-icon"></i>
+            <h3>Sécurité maximale</h3>
+            <p>Vos données sont protégées et sécurisées selon les normes les plus strictes.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-bell feature-icon"></i>
+            <h3>Alertes intelligentes</h3>
+            <p>Recevez des notifications pour ne jamais manquer un rendez-vous de vaccination.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-chart-line feature-icon"></i>
+            <h3>Suivi personnalisé</h3>
+            <p>Visualisez l'historique complet des vaccinations de votre enfant.</p>
+        </div>
+    </div>
+</section>
+
+<section class="about-section">
+    <div class="about-content">
+        <h2 class="section-title">Qui sommes-nous ?</h2>
+        <p>VacciTrack est une plateforme innovante dédiée au suivi des vaccinations infantiles. Notre mission est de simplifier la gestion des vaccinations pour les parents et les professionnels de santé.</p>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="cta-content">
+        <h2>Prêt à commencer ?</h2>
+        <p>Rejoignez VacciTrack dès aujourd'hui et simplifiez la gestion des vaccinations de votre enfant.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Créer un compte</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+    padding: 6rem 2rem;
+    text-align: center;
+    color: var(--white);
+    margin: -2rem -2rem 2rem -2rem;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.features-section {
+    padding: 4rem 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--gray-800);
+    margin-bottom: 3rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.feature-card {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--primary-blue);
+    margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+    color: var(--gray-800);
+    margin-bottom: 1rem;
+}
+
+.about-section {
+    background-color: var(--light-blue);
+    padding: 4rem 2rem;
+    margin: 0 -2rem;
+}
+
+.about-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.about-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+}
+
+.stat-label {
+    color: var(--gray-600);
+}
+
+.cta-section {
+    background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+    padding: 4rem 2rem;
+    text-align: center;
+    color: var(--white);
+    margin: 4rem -2rem -2rem -2rem;
+}
+
+.cta-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.cta-content h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.cta-content p {
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 
